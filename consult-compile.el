@@ -46,7 +46,10 @@ If GREP is non-nil, the buffer is a Grep buffer."
           (when-let* ((msg (get-text-property pos 'compilation-message))
                       ((compilation--message->loc msg)))
             (goto-char pos)
-            (let ((str (consult--buffer-substring pos (pos-eol))))
+            (let ((str (consult--buffer-substring pos
+						  ;; Take whole hyperlink.
+						  (or (compilation-next-single-property-change pos 'compilation-message)
+						      (point-max)))))
               (add-text-properties
                0 1 (list 'consult--type (unless grep
                                           (pcase (compilation--message->type msg)

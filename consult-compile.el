@@ -47,9 +47,13 @@ If GREP is non-nil, the buffer is a Grep buffer."
                       ((compilation--message->loc msg)))
             (goto-char pos)
             (let ((str (consult--buffer-substring pos
-						  ;; Take whole hyperlink.
-						  (or (compilation-next-single-property-change pos 'compilation-message)
-						      (point-max)))))
+						  ;; Sometimes useful text comes after the hyperlink.
+						  ;; Sometimes the hyperlink itself is multiline (Rust panics).
+						  ;; Capture the whole hyperlinks + the rest of the line after it.
+						  (save-excursion
+						    (goto-char (or (compilation-next-single-property-change pos 'compilation-message)
+								   (point-max)))
+						    (pos-eol)))))
               (add-text-properties
                0 1 (list 'consult--type (unless grep
                                           (pcase (compilation--message->type msg)
